@@ -7,30 +7,42 @@ on:
   workflow_dispatch:
 
 jobs:
-  export:
-    name: Export Android APK
+  build:
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.2.1
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Export Directory
-        run: mkdir -v -p build
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-      - name: Build Android APK
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Web App & Capacitor APK
         run: |
-          godot --headless --export-debug "Android" build/PentagonKingdoms.apk
-
-      - name: Verify Generated File
-        run: ls -la build/
+          npm init -y
+          npm install @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "Pentagon Kingdoms" "com.pentagon.kingdoms" --web-dir .
+          npx cap add android
+          npx cap sync android
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PentagonKingdoms-APK
-          path: build/PentagonKingdoms.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           
