@@ -7,23 +7,24 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build APK
+  export:
+    name: Export Android APK
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Godot Engine
-        uses: chickenandpork/godot-export-action@v1
+      - name: Export Godot Android APK
+        uses: firebelley/godot-export@v5.2.1
         with:
-          godot_version: "4.2.1"
-          preset: "Android"
-          project_directory: "."
+          godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/4.2.1/Godot_v4.2.1-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/4.2.1/Godot_v4.2.1-stable_export_templates.tpz
+          relative_project_path: ./
+          archive_output: false
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PentagonKingdoms-Game
-          path: "**/*.apk"
+          name: PentagonKingdoms-APK
+          path: build/*.apk
           
