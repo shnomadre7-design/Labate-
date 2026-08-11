@@ -10,21 +10,23 @@ jobs:
   export:
     name: Export Android APK
     runs-on: ubuntu-latest
+    container:
+      image: barichello/godot-ci:4.2.1
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Export Godot Android APK
-        uses: firebelley/godot-export@v5.2.1
-        with:
-          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/4.2.1-stable/Godot_v4.2.1-stable_linux.x86_64.zip
-          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/4.2.1-stable/Godot_v4.2.1-stable_export_templates.tpz
-          relative_project_path: ./
-          archive_output: false
+      - name: Setup Export Directory
+        run: mkdir -v -p build
+
+      - name: Build Android APK
+        run: |
+          godot --headless --export-debug "Android" build/PentagonKingdoms.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PentagonKingdoms-APK
-          path: build/*.apk
+          path: build/PentagonKingdoms.apk
           
