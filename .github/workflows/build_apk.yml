@@ -24,9 +24,13 @@ jobs:
         run: |
           godot --headless --export-debug "Android" build/PentagonKingdoms.apk
 
+      - name: Verify Generated File
+        run: ls -la build/
+
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: PentagonKingdoms-APK
           path: build/PentagonKingdoms.apk
+          if-no-files-found: error
           
