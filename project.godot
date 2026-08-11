@@ -1,0 +1,18 @@
+config_version=5
+
+[application]
+
+config/name="Pentagon Kingdoms"
+config/features=PackedStringArray("4.2", "Forward Plus")
+
+[autoload]
+
+GameManager="*res://Autoloads/GameManager.gd"
+NetworkManager="*res://Autoloads/NetworkManager.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/handheld/orientation=6
