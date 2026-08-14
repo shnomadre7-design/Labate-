@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'splash.dart';
+import 'economy.dart';
+import 'army.dart';
 
 void main() {
   runApp(const CastleWarApp());
@@ -16,36 +18,31 @@ class CastleWarApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF1E1E1E),
         primaryColor: Colors.amber,
       ),
-      home: const MainMenu(),
+      home: const SplashScreen(), // جعلنا البداية من شاشة السبلاش
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
-// شاشة البداية (اختيار إنشاء غرفة أو الانضمام)
 class MainMenu extends StatelessWidget {
   const MainMenu({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('حرب القلعة - الشبكة المحلية'), centerTitle: true),
+      appBar: AppBar(title: const Text('حرب القلعة - القائمة الرئيسية'), centerTitle: true),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen(isHost: true)));
-              },
-              child: const Text('إنشاء معركة (أنت القلعة والمملكة الأولى)', style: TextStyle(fontSize: 20)),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen(isHost: true))),
+              child: const Text('إنشاء معركة (Host)', style: TextStyle(fontSize: 20)),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen(isHost: false)));
-              },
-              child: const Text('الانضمام لمعركة', style: TextStyle(fontSize: 20)),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen(isHost: false))),
+              child: const Text('الانضمام لمعركة (Join)', style: TextStyle(fontSize: 20)),
             ),
           ],
         ),
@@ -54,7 +51,6 @@ class MainMenu extends StatelessWidget {
   }
 }
 
-// شاشة اللعب والعدادات
 class GameScreen extends StatefulWidget {
   final bool isHost;
   const GameScreen({super.key, required this.isHost});
@@ -64,53 +60,30 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> {
-  int coins = 0;
-  int coinsPerSecond = 1;
-  int troops = 0;
-  Timer? _timer;
+  late EconomyManager economy;
+  late ArmyManager army;
 
   @override
   void initState() {
     super.initState();
-    // تشغيل العداد لإضافة الدراهم كل ثانية
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        coins += coinsPerSecond;
-      });
-    });
+    // ربط ملفات الاقتصاد والجيوش بالشاشة
+    economy = EconomyManager(onUpdate: () => setState(() {}));
+    army = ArmyManager(onUpdate: () => setState(() {}));
+    economy.startEarning();
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    economy.stopEarning();
     super.dispose();
-  }
-
-  void upgradeEconomy() {
-    if (coins >= 50) {
-      setState(() {
-        coins -= 50;
-        coinsPerSecond += 2; // تطوير الدخل
-      });
-    }
-  }
-
-  void buyTroops() {
-    if (coins >= 10) {
-      setState(() {
-        coins -= 10;
-        troops += 5; // شراء 5 جنود
-      });
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isHost ? 'القلعة المركزية (المضيف)' : 'مملكة المهاجم')),
+      appBar: AppBar(title: Text(widget.isHost ? 'القلعة المركزية' : 'مملكة المهاجم')),
       body: Column(
         children: [
-          // عرض القلعة المركزية وحالتها
           Expanded(
             flex: 2,
             child: Container(
@@ -124,8 +97,6 @@ class _GameScreenState extends State<GameScreen> {
               ),
             ),
           ),
-          
-          // لوحة تحكم اللاعب (دراهم وجيوش)
           Expanded(
             flex: 3,
             child: Container(
@@ -137,8 +108,8 @@ class _GameScreenState extends State<GameScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      Text('الدراهم: $coins 💰\n(+$coinsPerSecond/ثانية)', style: const TextStyle(fontSize: 22), textAlign: TextAlign.center),
-                      Text('جيوشك: $troops ⚔️', style: const TextStyle(fontSize: 22)),
+                      Text('الدراهم: ${economy.coins} 💰\n(+${economy.coinsPerSecond}/ثانية)', style: const TextStyle(fontSize: 22), textAlign: TextAlign.center),
+                      Text('جيوشك: ${army.troops} ⚔️', style: const TextStyle(fontSize: 22)),
                     ],
                   ),
                   const Divider(color: Colors.white),
@@ -147,12 +118,21 @@ class _GameScreenState extends State<GameScreen> {
                     children: [
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        onPressed: upgradeEconomy,
+                        onPressed: economy.upgradeEconomy,
                         child: const Text('تطوير الدراهم\n(التكلفة: 50)'),
                       ),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-                        onPressed: buyTroops,
+                        onPressed: () {
+                          // شراء الجيش وخصم التكلفة من ملف الاقتصاد
+                          army.buyTroops(10, (cost) {
+                            if (economy.coins >= cost) {
+                              economy.coins -= cost;
+                              return true;
+                            }
+                            return false;
+                          });
+                        },
                         child: const Text('شراء جيش\n(التكلفة: 10)'),
                       ),
                     ],
@@ -164,8 +144,12 @@ class _GameScreenState extends State<GameScreen> {
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
                       onPressed: () {
-                        // هنا سنضع كود إرسال الجيوش للقلعة عبر الشبكة
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إرسال الجيش للقلعة! (سيتم برمجة الاتصال لاحقاً)')));
+                        if (army.troops > 0) {
+                          int sent = army.sendTroops();
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم إرسال $sent جندي للقلعة!')));
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ليس لديك جيش لإرساله!')));
+                        }
                       },
                       child: const Text('إرسال الجيوش للهجوم! 🚀', style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.bold)),
                     ),
