@@ -158,12 +158,26 @@ class _GameScreenState extends State<GameScreen> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Positioned(top: 5, child: Text(connectionStatus, style: const TextStyle(backgroundColor: Colors.black87, color: Colors.white, padding: EdgeInsets.all(5)))),
+                    Positioned(
+                      top: 5,
+                      child: Container(
+                        color: Colors.black87,
+                        padding: const EdgeInsets.all(5),
+                        child: Text(
+                          connectionStatus,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
                     
                     // القلعة المركزية
                     Container(
                       width: 130, height: 130,
-                      decoration: BoxDecoration(color: Colors.grey[850], border: Border.all(color: Colors.amber, width: 4), borderRadius: BorderRadius.circular(10)),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[850],
+                        border: Border.all(color: Colors.amber, width: 4),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
