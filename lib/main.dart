@@ -58,7 +58,7 @@ class MainMenu extends StatelessWidget {
               ),
               icon: const Icon(Icons.castle, size: 28),
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const GameScreen(isHost: true))),
-              child: const Text('إنشاء معركة (أنت القلعة)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              label: const Text('إنشاء معركة (أنت القلعة)', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
             Container(
               padding: const EdgeInsets.all(20),
